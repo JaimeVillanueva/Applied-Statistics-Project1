@@ -1,0 +1,177 @@
+---
+title: "Objective 1"
+output: html_document
+author: Volodymyr Orlov
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(Hmisc)
+```
+
+```{r}
+cross_validate <- function(formula, data, k=10) {
+  
+  n_folds <- 10
+  n_test <- floor(dim(data)[1] * 0.2)
+  n_train <- dim(data)[1] - n_test
+  
+  folds_i <- sample(rep(1:n_folds, length.out = n_train))
+  cv_tmp <- matrix(NA, nrow = n_folds, ncol = length(df))
+  
+  for (k in 1:n_folds) {
+    test_i <- which(folds_i == k)
+    train_xy <- data[-test_i, ]
+    test_xy <- data[test_i, ]
+    fitted_model <- lm(formula, data=train_xy)
+    pred <- predict(fitted_model, newdata = test_xy)
+    cv_tmp[k, ] <- sqrt(mean((pred - test_xy$TOTALDOL.log)^2))
+  }
+  
+  cv_tmp
+  
+}
+```
+
+```{r}
+energy <- read.csv('../../data/recs2009_public_vlad_clean.csv')
+```
+
+```{r}
+energy <- energy[-which(energy$FUELPOOL == 21), ]
+energy <- energy[-which(energy$PELLIGHT == -2), ]
+energy <- energy[-which(energy$AGEHHMEMCAT5 == 18), ]
+energy <- energy[-which(energy$TYPERFR2 == 5), ]
+```
+
+```{r}
+energy$TOTSQFT.log <- log(1 + energy$TOTSQFT)
+energy$TOTALDOL.log <- log(1 + energy$TOTALDOL)
+energy$NUMCFAN_log <- log(1 + energy$NUMCFAN)
+energy$WINDOWS.f <- factor(energy$WINDOWS)
+energy$MONEYPY.f <- factor(energy$MONEYPY)
+energy$REPORTABLE_DOMAIN.f <- factor(energy$REPORTABLE_DOMAIN)
+energy$DIVISION.f <- factor(energy$DIVISION)
+energy$YEARMADE.f <- factor(energy$YEARMADE)
+energy$POOL.f <- factor(energy$POOL)
+energy$AGEHHMEMCAT2.f <- factor(energy$AGEHHMEMCAT2)
+energy$STUDIO.f <- factor(energy$STUDIO)
+energy$AGEHHMEMCAT3.f <- factor(energy$AGEHHMEMCAT3)
+energy$REPORTABLE_DOMAIN.f <- factor(energy$REPORTABLE_DOMAIN)
+energy$LPGDELV.f <- factor(energy$LPGDELV)
+energy$PUGCOOK.f <- factor(energy$PUGCOOK)
+energy$SWIMPOOL.f <- factor(energy$SWIMPOOL)
+energy$USECENAC.f <- factor(energy$USECENAC)
+energy$PCSLEEP2.f <- factor(energy$PCSLEEP2)
+energy$STORIES.f <- factor(energy$STORIES)
+energy$AGEHHMEMCAT4.f <- factor(energy$AGEHHMEMCAT4)
+energy$ROOFTYPE.f <- factor(energy$ROOFTYPE)
+energy$FUELPOOL.f <- factor(energy$FUELPOOL)
+energy$USECFAN.f <- factor(energy$USECFAN)
+energy$INSTLWS.f <- factor(energy$INSTLWS)
+energy$TIMEON2.f <- factor(energy$TIMEON2)
+energy$OVENUSE.f <- factor(energy$OVENUSE)
+energy$SIZRFRI2.f <- factor(energy$SIZRFRI2)
+energy$OVENFUEL.f <- factor(energy$OVENFUEL)
+energy$WHEATSIZ2.f <- factor(energy$WHEATSIZ2)
+energy$WASHLOAD.f <- factor(energy$WASHLOAD)
+energy$REGIONC.f <- factor(energy$REGIONC)
+energy$PCTYPE3.f <- factor(energy$PCTYPE3)
+energy$FUELHEAT.f <- factor(energy$FUELHEAT)
+energy$REFRIGT2.f <- factor(energy$REFRIGT2)
+energy$BATTOOLS.f <- factor(energy$BATTOOLS)
+energy$EDUCATION.f <- factor(energy$EDUCATION)
+energy$AIA_Zone.f <- factor(energy$AIA_Zone)
+energy$PERIODLP.f <- factor(energy$PERIODLP)
+energy$COMBODVR3.f <- factor(energy$COMBODVR3)
+energy$TVONWE3.f <- factor(energy$TVONWE3)
+energy$DRAFTY.f <- factor(energy$DRAFTY)
+energy$DWASHUSE.f <- factor(energy$DWASHUSE)
+energy$PELLIGHT.f <- factor(energy$PELLIGHT)
+energy$SIZRFRI3.f <- factor(energy$SIZRFRI3)
+energy$WHEATAGE2.f <- factor(energy$WHEATAGE2)
+energy$DRYRUSE.f <- factor(energy$DRYRUSE)
+energy$AGECDRYER.f <- factor(energy$AGECDRYER)
+energy$TYPEHUQ.f <- factor(energy$TYPEHUQ)
+energy$TYPECLN.f <- factor(energy$TYPECLN)
+energy$PELHOTWA.f <- factor(energy$PELHOTWA)
+energy$ESFRIG.f <- factor(energy$ESFRIG)
+energy$AGEHHMEMCAT5.f <- factor(energy$AGEHHMEMCAT5)
+energy$YEARMADERANGE.f <- factor(energy$YEARMADERANGE)
+energy$AGERFRI2.f <- factor(energy$AGERFRI2)
+energy$TYPERFR2.f <- factor(energy$TYPERFR2)
+energy$AMTMICRO.f <- factor(energy$AMTMICRO)
+energy$WWACAGE.f <- factor(energy$WWACAGE)
+energy$LPWATER.f <- factor(energy$LPWATER)
+```
+
+```{r}
+models <- list(
+  TOTALDOL.log ~ TOTSQFT.log,
+  TOTALDOL.log ~ TOTSQFT.log + HEATROOM,
+  TOTALDOL.log ~ TOTSQFT.log + HEATROOM + TOTROOMS,
+  TOTALDOL.log ~ TOTSQFT.log + HEATROOM + TOTROOMS + NUMCFAN_log,
+  TOTALDOL.log ~ TOTSQFT.log + HEATROOM + TOTROOMS + NUMCFAN_log + TVCOLOR,
+  TOTALDOL.log ~ TOTSQFT.log + HEATROOM + TOTROOMS + NUMCFAN_log + TVCOLOR + WINDOWS.f,
+  TOTALDOL.log ~ TOTSQFT.log + HEATROOM + TOTROOMS + NUMCFAN_log + TVCOLOR + WINDOWS.f + MONEYPY.f,
+  TOTALDOL.log ~ TOTSQFT.log + HEATROOM + TOTROOMS + NUMCFAN_log + TVCOLOR + WINDOWS.f + MONEYPY.f + DIVISION.f,
+  TOTALDOL.log ~ TOTSQFT.log + HEATROOM + TOTROOMS + NUMCFAN_log + TVCOLOR + WINDOWS.f + MONEYPY.f + DIVISION.f + YEARMADE.f,
+  TOTALDOL.log ~ TOTSQFT.log + HEATROOM + TOTROOMS + NUMCFAN_log + TVCOLOR + WINDOWS.f + MONEYPY.f + DIVISION.f + YEARMADE.f + POOL.f,
+  TOTALDOL.log ~ TOTSQFT.log + HEATROOM + TOTROOMS + NUMCFAN_log + TVCOLOR + WINDOWS.f + MONEYPY.f + DIVISION.f + YEARMADE.f + POOL.f + AGEHHMEMCAT2.f + STUDIO.f + AGEHHMEMCAT3.f,
+  TOTALDOL.log ~ TOTSQFT.log + HEATROOM + TOTROOMS + NUMCFAN_log + TVCOLOR + WINDOWS.f + MONEYPY.f + DIVISION.f + YEARMADE.f + POOL.f + AGEHHMEMCAT2.f + STUDIO.f + AGEHHMEMCAT3.f + REPORTABLE_DOMAIN.f + LPGDELV.f + PUGCOOK.f + SWIMPOOL.f + USECENAC.f + PCSLEEP2.f,
+  TOTALDOL.log ~ TOTSQFT.log + HEATROOM + TOTROOMS + NUMCFAN_log + TVCOLOR + WINDOWS.f + MONEYPY.f + DIVISION.f + YEARMADE.f + POOL.f + AGEHHMEMCAT2.f + STUDIO.f + AGEHHMEMCAT3.f + REPORTABLE_DOMAIN.f + LPGDELV.f + PUGCOOK.f + SWIMPOOL.f + USECENAC.f + PCSLEEP2.f + STORIES.f + AGEHHMEMCAT4.f,
+   TOTALDOL.log ~ TOTSQFT.log + HEATROOM + TOTROOMS + NUMCFAN_log + TVCOLOR + WINDOWS.f + MONEYPY.f + DIVISION.f + YEARMADE.f + POOL.f + AGEHHMEMCAT2.f + STUDIO.f + AGEHHMEMCAT3.f + REPORTABLE_DOMAIN.f + LPGDELV.f + PUGCOOK.f + SWIMPOOL.f + USECENAC.f + PCSLEEP2.f + STORIES.f + AGEHHMEMCAT4.f + ROOFTYPE.f + FUELPOOL.f + USECFAN.f,
+  TOTALDOL.log ~ TOTSQFT.log + HEATROOM + TOTROOMS + NUMCFAN_log + TVCOLOR + WINDOWS.f + MONEYPY.f + DIVISION.f + YEARMADE.f + POOL.f + AGEHHMEMCAT2.f + STUDIO.f + AGEHHMEMCAT3.f + REPORTABLE_DOMAIN.f + LPGDELV.f + PUGCOOK.f + SWIMPOOL.f + USECENAC.f + PCSLEEP2.f + STORIES.f + AGEHHMEMCAT4.f + ROOFTYPE.f + FUELPOOL.f + USECFAN.f + INSTLWS.f + TIMEON2.f + OVENUSE.f + SIZRFRI2.f,
+  TOTALDOL.log ~ TOTSQFT.log + HEATROOM + TOTROOMS + NUMCFAN_log + TVCOLOR + WINDOWS.f + MONEYPY.f + DIVISION.f + YEARMADE.f + POOL.f + AGEHHMEMCAT2.f + STUDIO.f + AGEHHMEMCAT3.f + REPORTABLE_DOMAIN.f + LPGDELV.f + PUGCOOK.f + SWIMPOOL.f + USECENAC.f + PCSLEEP2.f + STORIES.f + AGEHHMEMCAT4.f + ROOFTYPE.f + FUELPOOL.f + USECFAN.f + INSTLWS.f + TIMEON2.f + OVENUSE.f + SIZRFRI2.f + OVENFUEL.f + WHEATSIZ2.f + WASHLOAD.f + REGIONC.f,
+  TOTALDOL.log ~ TOTSQFT.log + HEATROOM + TOTROOMS + NUMCFAN_log + TVCOLOR + WINDOWS.f + MONEYPY.f + DIVISION.f + YEARMADE.f + POOL.f + AGEHHMEMCAT2.f + STUDIO.f + AGEHHMEMCAT3.f + REPORTABLE_DOMAIN.f + LPGDELV.f + PUGCOOK.f + SWIMPOOL.f + USECENAC.f + PCSLEEP2.f + STORIES.f + AGEHHMEMCAT4.f + ROOFTYPE.f + FUELPOOL.f + USECFAN.f + INSTLWS.f + TIMEON2.f + OVENUSE.f + SIZRFRI2.f + OVENFUEL.f + WHEATSIZ2.f + WASHLOAD.f + REGIONC.f + PCTYPE3.f + FUELHEAT.f + REFRIGT2.f + BATTOOLS.f + EDUCATION.f,
+  TOTALDOL.log ~ TOTSQFT.log + HEATROOM + TOTROOMS + NUMCFAN_log + TVCOLOR + WINDOWS.f + MONEYPY.f + DIVISION.f + YEARMADE.f + POOL.f + AGEHHMEMCAT2.f + STUDIO.f + AGEHHMEMCAT3.f + REPORTABLE_DOMAIN.f + LPGDELV.f + PUGCOOK.f + SWIMPOOL.f + USECENAC.f + PCSLEEP2.f + STORIES.f + AGEHHMEMCAT4.f + ROOFTYPE.f + FUELPOOL.f + USECFAN.f + INSTLWS.f + TIMEON2.f + OVENUSE.f + SIZRFRI2.f + OVENFUEL.f + WHEATSIZ2.f + WASHLOAD.f + REGIONC.f + PCTYPE3.f + FUELHEAT.f + REFRIGT2.f + BATTOOLS.f + EDUCATION.f + AIA_Zone.f + PERIODLP.f + COMBODVR3.f + TVONWE3.f + DRAFTY.f,
+  TOTALDOL.log ~ TOTSQFT.log + HEATROOM + TOTROOMS + NUMCFAN_log + TVCOLOR + WINDOWS.f + MONEYPY.f + DIVISION.f + YEARMADE.f + POOL.f + AGEHHMEMCAT2.f + STUDIO.f + AGEHHMEMCAT3.f + REPORTABLE_DOMAIN.f + LPGDELV.f + PUGCOOK.f + SWIMPOOL.f + USECENAC.f + PCSLEEP2.f + STORIES.f + AGEHHMEMCAT4.f + ROOFTYPE.f + FUELPOOL.f + USECFAN.f + INSTLWS.f + TIMEON2.f + OVENUSE.f + SIZRFRI2.f + OVENFUEL.f + WHEATSIZ2.f + WASHLOAD.f + REGIONC.f + PCTYPE3.f + FUELHEAT.f + REFRIGT2.f + BATTOOLS.f + EDUCATION.f + AIA_Zone.f + PERIODLP.f + COMBODVR3.f + TVONWE3.f + DRAFTY.f + DWASHUSE.f + PELLIGHT.f + SIZRFRI3.f + WHEATAGE2.f + DRYRUSE.f,
+  TOTALDOL.log ~ TOTSQFT.log + HEATROOM + TOTROOMS + NUMCFAN_log + TVCOLOR + WINDOWS.f + MONEYPY.f + DIVISION.f + YEARMADE.f + POOL.f + AGEHHMEMCAT2.f + STUDIO.f + AGEHHMEMCAT3.f + REPORTABLE_DOMAIN.f + LPGDELV.f + PUGCOOK.f + SWIMPOOL.f + USECENAC.f + PCSLEEP2.f + STORIES.f + AGEHHMEMCAT4.f + ROOFTYPE.f + FUELPOOL.f + USECFAN.f + INSTLWS.f + TIMEON2.f + OVENUSE.f + SIZRFRI2.f + OVENFUEL.f + WHEATSIZ2.f + WASHLOAD.f + REGIONC.f + PCTYPE3.f + FUELHEAT.f + REFRIGT2.f + BATTOOLS.f + EDUCATION.f + AIA_Zone.f + PERIODLP.f + COMBODVR3.f + TVONWE3.f + DRAFTY.f + DWASHUSE.f + PELLIGHT.f + SIZRFRI3.f + WHEATAGE2.f + DRYRUSE.f + AGECDRYER.f + TYPEHUQ.f + TYPECLN.f + PELHOTWA.f + ESFRIG.f + AGEHHMEMCAT5.f,
+  TOTALDOL.log ~ TOTSQFT.log + HEATROOM + TOTROOMS + NUMCFAN_log + TVCOLOR + WINDOWS.f + MONEYPY.f + DIVISION.f + YEARMADE.f + POOL.f + AGEHHMEMCAT2.f + STUDIO.f + AGEHHMEMCAT3.f + REPORTABLE_DOMAIN.f + LPGDELV.f + PUGCOOK.f + SWIMPOOL.f + USECENAC.f + PCSLEEP2.f + STORIES.f + AGEHHMEMCAT4.f + ROOFTYPE.f + FUELPOOL.f + USECFAN.f + INSTLWS.f + TIMEON2.f + OVENUSE.f + SIZRFRI2.f + OVENFUEL.f + WHEATSIZ2.f + WASHLOAD.f + REGIONC.f + PCTYPE3.f + FUELHEAT.f + REFRIGT2.f + BATTOOLS.f + EDUCATION.f + AIA_Zone.f + PERIODLP.f + COMBODVR3.f + TVONWE3.f + DRAFTY.f + DWASHUSE.f + PELLIGHT.f + SIZRFRI3.f + WHEATAGE2.f + DRYRUSE.f + AGECDRYER.f + TYPEHUQ.f + TYPECLN.f + PELHOTWA.f + ESFRIG.f + AGEHHMEMCAT5.f + YEARMADERANGE.f + AGERFRI2.f,     TOTALDOL.log ~ TOTSQFT.log + HEATROOM + TOTROOMS + NUMCFAN_log + TVCOLOR + WINDOWS.f + MONEYPY.f + DIVISION.f + YEARMADE.f + POOL.f + AGEHHMEMCAT2.f + STUDIO.f + AGEHHMEMCAT3.f + REPORTABLE_DOMAIN.f + LPGDELV.f + PUGCOOK.f + SWIMPOOL.f + USECENAC.f + PCSLEEP2.f + STORIES.f + AGEHHMEMCAT4.f + ROOFTYPE.f + FUELPOOL.f + USECFAN.f + INSTLWS.f + TIMEON2.f + OVENUSE.f + SIZRFRI2.f + OVENFUEL.f + WHEATSIZ2.f + WASHLOAD.f + REGIONC.f + PCTYPE3.f + FUELHEAT.f + REFRIGT2.f + BATTOOLS.f + EDUCATION.f + AIA_Zone.f + PERIODLP.f + COMBODVR3.f + TVONWE3.f + DRAFTY.f + DWASHUSE.f + PELLIGHT.f + SIZRFRI3.f + WHEATAGE2.f + DRYRUSE.f + AGECDRYER.f + TYPEHUQ.f + TYPECLN.f + PELHOTWA.f + ESFRIG.f + AGEHHMEMCAT5.f + YEARMADERANGE.f + AGERFRI2.f + TYPERFR2.f + AMTMICRO.f + WWACAGE.f + LPWATER.f
+)
+```
+
+```{r}
+cv_all <- sapply(models, function(x) cross_validate(x, data = energy))
+cv <- colMeans(cv_all)
+aic <- sapply(models, function(x) AIC(lm(x, data=energy)))
+bic <- sapply(models, function(x) BIC(lm(x, data=energy)))
+```
+
+```{r}
+models
+```
+
+```{r}
+plot(1:length(models), aic, type = "l", lwd = 2, col = gray(0.4), ylab = "Prediction error", 
+    xlab = "Model", main = "AIC & BIC")
+lines(1:length(models), bic, lwd = 2, col = "darkred", lty = 2)
+legend(x = "topright", legend = c("AIC", "BIC"), lty = c(1, 2, 1), lwd = rep(2, 3), col = c(gray(0.4), "darkred", "steelblue2"), cex = 0.85)
+```
+
+```{r}
+plot(1:length(models), cv, type = "l", lwd = 2, col = gray(0.4), ylab = "MSE", 
+    xlab = "Model", main = paste0(10, 
+        "-fold Cross-Validation"))
+cv_sd <- apply(cv_all, 2, sd)/sqrt(10)
+errbar(1:length(models), cv, cv + cv_sd, cv - cv_sd, add = TRUE, col = "steelblue2", pch = 19, 
+    lwd = 0.5)
+points(1:length(models), cv, col = "steelblue2", pch = 19)
+```
+
+Best predictive model
+
+```{r}
+
+best.model.number <- 19
+
+print(paste('Best model: ', toString(models[best.model.number][[1]])))
+
+best_model <- lm(models[best.model.number][[1]], data = energy)
+
+summary(best_model)
+
+```

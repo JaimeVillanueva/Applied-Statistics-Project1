@@ -42,3 +42,6 @@ rsconnect/
 
 # Jupyter Notebook
 *-checkpoint.ipynb
+
+# Mac OS X
+.DS_Store
