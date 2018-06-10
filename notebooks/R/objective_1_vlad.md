@@ -1074,3 +1074,33 @@ summary(best_model)
 ## Multiple R-squared:  0.6649,	Adjusted R-squared:  0.6556 
 ## F-statistic:  71.3 on 327 and 11751 DF,  p-value: < 2.2e-16
 ```
+
+Lets see how Jason's model compare to Vlad's best model
+
+
+```r
+energy$ATHOME.f <- factor(energy$ATHOME)
+energy$AIRCOND.f <- factor(energy$AIRCOND)
+jason_formula <- TOTALDOL.log ~ TOTSQFT.log + HHAGE + ATHOME.f + TEMPGONE + TOTROOMS + YEARMADE + AIRCOND.f + HDD65 + CDD30YR + HDD30YR
+AIC(lm(jason_formula, data = energy))
+```
+
+```
+## [1] 13854.78
+```
+
+```r
+BIC(lm(jason_formula, data = energy))
+```
+
+```
+## [1] 13943.57
+```
+
+```r
+colMeans(cross_validate(jason_formula, data = energy))
+```
+
+```
+## [1] 0.4244492
+```

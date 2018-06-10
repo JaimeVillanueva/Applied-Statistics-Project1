@@ -177,3 +177,14 @@ best_model <- lm(models[best.model.number][[1]], data = energy)
 summary(best_model)
 
 ```
+
+Lets see how Jason's model compare to Vlad's best model
+
+```{r}
+energy$ATHOME.f <- factor(energy$ATHOME)
+energy$AIRCOND.f <- factor(energy$AIRCOND)
+jason_formula <- TOTALDOL.log ~ TOTSQFT.log + HHAGE + ATHOME.f + TEMPGONE + TOTROOMS + YEARMADE + AIRCOND.f + HDD65 + CDD30YR + HDD30YR
+AIC(lm(jason_formula, data = energy))
+BIC(lm(jason_formula, data = energy))
+colMeans(cross_validate(jason_formula, data = energy))
+```
