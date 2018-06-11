@@ -35,11 +35,33 @@ Fo our analisys and models we considered only 58 quantitative and 438 categorica
 
 To better understand relationship between total yearly cost and household's features we looked at correlation matrix of all quantitative plus our dependent variable. The plot is depicted in \autoref{fig1}
 
-By scanning through correlation matrix we've identified several good candidates for strong predictor variables: total square footage, total number of rooms, number of rooms heated, age of household, number of ceiling fans used, number of televisions used, heating degree days in 2009 above 65F, cooling degree days in 2009 below 65F. From \autoref{fig2} you can see there is a clear linear relashionship between some of these variables and a response we are trying to predict.
+By scanning through correlation matrix we've identified several good candidates for strong predictor variables: total square footage, total number of rooms, number of rooms heated, number of ceiling fans used, number of televisions used, heating degree days in 2009 above 65F. From \autoref{fig2} you can see there is a clear linear relashionship between all of these variables and a response we are trying to predict.
 
 In addition to that we've used our intuition to select following variables for further analysis:
 
-## Figures
+## Objective 1
+
+First goal of our analysis is to model total energy bill of a household using best subset of predictors. All our models are based on linear regression:
+
+$$y = X\beta + \epsilon$$
+Where $X$ is a $x \times k$ matrix with $k$ observation and $n$ independent variables, $y$ is a $n \times 1$ vector of observations, $\epsilon$ is a $n \times 1$ irreducible error vector and  $\beta$ be a $k \times 1$ vector of parameters that we want to estimate. 
+
+### Model Selection
+
+Given big number of predictors it made more sense for us to have two models:
+
+1. A model for interpretation and hypothesis testing
+1. A model for high predictability
+
+For (1) we used our intuition to choose a best subset of predictors for interpretation. For (2) we have tested multiple combinations of quantitative and categorical predictors and selected the best model using AIC, BIC and CV criteria.
+
+#### Predictive Model
+
+To select a best predictive model we assembeled an ordered list of qualitative and quantitative predictors using scatterplots and our intuition as a guideline. The final list can be found in \autoref{table1}. Next, we have assembled 22 models starting from a simple model with just one predictor where each subsequent model uses increasing number of predictors from this table and measured BIC, AIC and CV metrics for each model. Resulting plots can be found in \autoref{fig3}. After looking at these plots we concluded that the best predictive model is model build from predictors marked with a star in \autoref{table1}.
+
+#### Descriptive Model
+
+## Figures and Tables
 
 \begin{figure}[h!]
   \centering
@@ -48,4 +70,77 @@ In addition to that we've used our intuition to select following variables for f
   \label{fig1}
 \end{figure}
 
-## Objective 1
+\begin{figure}[h!]
+  \centering
+    \includegraphics[width=1.0\textwidth]{images/fig2.png}
+  \caption{Scatterplots of selected predictors vs log(total cost).}
+  \label{fig2}
+\end{figure}
+
+\begin{figure}[h!]
+  \centering
+    \includegraphics[width=1.0\textwidth]{images/fig3.png}
+  \caption{AIC, BIC and CV metrics for 22 predictive models. Vertical red line indicates selected model.}
+  \label{fig3}
+\end{figure}
+
+\begin{table}
+  \small
+  \centering
+    \begin{tabular}{|c|l|c|}
+        \hline
+        Predictor         & Description & Used in Best Model\\ \hline
+        TOTSQFT           & total square footage & * \\ 
+        HEATROOM          & number of rooms heated & * \\ 
+        TOTROOMS          & total number of rooms & * \\ 
+        NUMCFAN           & number of ceiling fans used & * \\ 
+        TVCOLOR           & number of televisions used & * \\ 
+        WINDOWS           & Number of windows in heated areas & * \\ 
+        MONEYPY           & 2009 gross household income & * \\ 
+        DIVISION          & Census Division & * \\ 
+        YEARMADE          & Year housing unit was built & * \\ 
+        POOL              & Heated swimming pool & * \\ 
+        AGEHHMEMCAT2      & Age category of second household member & * \\ 
+        STUDIO            & Studio apartment & * \\ 
+        AGEHHMEMCAT3      & Age category of third household member & * \\ 
+        REPORTABLE\_DOMAIN & Reportable states and groups of states & * \\ 
+        LPGDELV           & Propane delivered & * \\ 
+        PUGCOOK           & Who pays for natural gas for cooking & * \\ 
+        SWIMPOOL          & Swimming pool & * \\ 
+        USECENAC          & Frequency central air conditioner used in summer 2009 & * \\ 
+        PCSLEEP2          & Sleep or standby mode for second computer when not in use & * \\ 
+        STORIES           & Number of stories in a single-family home & * \\ 
+        AGEHHMEMCAT4      & Age category of fourth household member & * \\ 
+        ROOFTYPE          & Major roofing material & * \\ 
+        FUELPOOL          & Fuel used for heating swimming pool & * \\ 
+        USECFAN           & Frequency most-used ceiling fan used in summer 2009 & * \\ 
+        INSTLWS           & Caulking or weather stripping by this household & * \\ 
+        TIMEON2           & Daily usage of second most-used computer & * \\ 
+        OVENUSE           & Frequency of oven use & * \\ 
+        SIZRFRI2          & Size of second most-used refrigerator & * \\ 
+        OVENFUEL          & Fuel used by most-used stove & * \\ 
+        WHEATSIZ2         & Secondary water heater size (if storage tank) & * \\ 
+        WASHLOAD          & Frequency clothes washer used & * \\ 
+        REGIONC           & Census Region & * \\ 
+        PCTYPE3           & Third most-used computer - desktop or laptop & * \\ 
+        FUELHEAT          & Main space heating fuel & * \\ 
+        REFRIGT2          & Defrosting type of second most-used refrigerator & * \\ 
+        BATTOOLS          & Number of rechargeable tools and appliances used & * \\ 
+        EDUCATION         & Highest education completed by householder & * \\ 
+        AIA\_Zone          & AIA Climate Zone, based on average temperatures from 1981-2010 & * \\ 
+        PERIODLP          & Number of days covered by Energy Supplier Survey LPG & * \\ 
+        COMBODVR3         & DVR built into the cable box or satellite box & * \\ 
+        TVONWE3           & Third most-used TV usage on weekends & * \\ 
+        DRAFTY            & Is home too drafty in the winter? (respondent reported) & * \\ 
+        DWASHUSE          & Frequency dishwasher used & * \\ 
+        PELLIGHT          & Who pays for electricity used for lighting and other appliances & * \\ 
+        SIZRFRI3          & Size of third most-used refrigerator & * \\ 
+        WHEATAGE2         & Secondary water heater age & * \\ 
+        DRYRUSE           & Frequency clothes dryer used & * \\ 
+        AGECDRYER         & Age of clothes dryer & \\ 
+        TYPEHUQ           & Type of housing unit &  \\
+        \hline
+    \end{tabular}
+    \caption{Ordered list of variables considered for our predictive model. Predictors, selected for the best model are marked with *}
+    \label{table1}
+\end{table}

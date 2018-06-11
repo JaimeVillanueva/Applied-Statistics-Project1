@@ -168,6 +168,8 @@ models <- list(
 ```
 
 
+
+
 ```r
 cv_all <- sapply(models, function(x) cross_validate(x, data = energy))
 ```
@@ -676,9 +678,10 @@ plot(1:length(models), aic, type = "l", lwd = 2, col = gray(0.4), ylab = "Predic
     xlab = "Model", main = "AIC & BIC")
 lines(1:length(models), bic, lwd = 2, col = "darkred", lty = 2)
 legend(x = "topright", legend = c("AIC", "BIC"), lty = c(1, 2, 1), lwd = rep(2, 3), col = c(gray(0.4), "darkred", "steelblue2"), cex = 0.85)
+abline(v=best.model.number, col="red")
 ```
 
-![](objective_1_vlad_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
+![](objective_1_vlad_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
 
 
 ```r
@@ -689,16 +692,15 @@ cv_sd <- apply(cv_all, 2, sd)/sqrt(10)
 errbar(1:length(models), cv, cv + cv_sd, cv - cv_sd, add = TRUE, col = "steelblue2", pch = 19, 
     lwd = 0.5)
 points(1:length(models), cv, col = "steelblue2", pch = 19)
+abline(v=best.model.number, col="red")
 ```
 
-![](objective_1_vlad_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
+![](objective_1_vlad_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
 
 Best predictive model
 
 
 ```r
-best.model.number <- 19
-
 print(paste('Best model: ', toString(models[best.model.number][[1]])))
 ```
 
@@ -1102,5 +1104,5 @@ colMeans(cross_validate(jason_formula, data = energy))
 ```
 
 ```
-## [1] 0.4244492
+## [1] 0.4245223
 ```
