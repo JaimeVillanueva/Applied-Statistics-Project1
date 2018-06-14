@@ -1,0 +1,76 @@
+---
+title: "Objective 2"
+output: html_document
+---
+
+this document is base on [this post](http://www.sthda.com/english/wiki/two-way-anova-test-in-r)
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Load data, packages...
+
+```{r}
+library(dplyr)
+library(ggpubr)
+library(car)
+
+energy <- read.csv('../../data/recs2009_public_vlad_clean.csv')
+```
+
+Prepare factors and dependent variable
+
+```{r}
+energy$TOTALDOL.log <- log(energy$TOTALDOL)
+energy$REGIONC.f <- factor(energy$REGIONC, levels = c(1, 2, 3, 4), labels = c("NE", "MW", "S", "W"))
+energy$UR.f <- factor(energy$UR)
+```
+
+Lets see whether our data is balanced...
+
+```{r}
+table(energy$REGIONC.f, energy$UR.f)
+```
+
+Nope, it is not. Now let's plot 2 levels...
+
+```{r}
+ggboxplot(energy, x = "REGIONC.f", y = "TOTALDOL.log", color = "UR.f",
+          palette = c("#00AFBB", "#E7B800"))
+ggline(energy, x = "REGIONC.f", y = "TOTALDOL.log", color = "UR.f",
+       add = c("mean_se"),
+       palette = c("#00AFBB", "#E7B800"))
+```
+
+I think I should git non-additive model. But let's do both...
+
+```{r}
+energy.aov2 <- aov(TOTALDOL.log ~ REGIONC.f + UR.f, data = energy)
+summary(energy.aov2)
+Anova(energy.aov2, type = "III")
+energy.aov3 <- aov(TOTALDOL.log ~ REGIONC.f*UR.f, data = energy)
+summary(energy.aov3)
+Anova(energy.aov3, type = "III")
+```
+
+Display residuals and QQ plot
+
+```{r}
+plot(energy.aov3, 1)
+plot(energy.aov3, 2)
+```
+
+What are these outliers?
+
+```{r}
+energy[c(11947, 9767, 1310),]
+```
+
+What Levene's test shows?
+
+```{r}
+leveneTest(TOTALDOL.log ~ REGIONC.f*UR.f, data = energy)
+```
+
+Bummer. But I think we simply have too big sample for this test.
