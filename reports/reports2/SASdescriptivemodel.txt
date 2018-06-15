@@ -1,0 +1,44 @@
+FILENAME REFFILE '/home/jglin0/sasuser.v94/Project/recs2009_public_vlad_clean.csv';
+
+PROC IMPORT DATAFILE=REFFILE
+	DBMS=CSV
+	OUT=WORK.IMPORT;
+	GETNAMES=YES;
+RUN;
+
+data log_import;
+set import;
+log_dollar = log(totaldol);
+dollar_sqft = totaldol/totsqft;
+log_dollar_sqft = log(dollar_sqft);
+log_sqft = log(totsqft);
+sqft_100 = totsqft/100;
+hdd30_aircond = hdd30yr * aircond;
+run;
+proc reg data=log_import;
+model log_dollar =  sqft_100 hhage athome tempgone totrooms yearmade aircond cdd30yr hdd30yr hdd30_aircond/vif;
+run;
+proc glmselect data = log_import plots(stepaxis = number) = (criterionpanel ASEPlot) seed = 1;
+class aircond equipnoheat athome;
+partition fraction(test = .5); 
+model log_dollar= totsqft hhage athome temphome tempgone tempnite /*totrooms*/ yearmade aircond equipnoheat hdd65 cdd65 hdd30yr cdd30yr aircond*hdd30yr equipnoheat*cdd30yr
+hdd65*aircond equipnoheat*cdd65 tothsqft totcsqft aircond*totcsqft equipnoheat*tothsqft  / selection = stepwise( choose=cv stop = none);
+run;
+proc glmselect data = log_import plots(stepaxis = number) = (criterionpanel ASEPlot) seed = 1;
+class aircond equipnoheat athome;
+partition fraction(test = .5); 
+model log_dollar= totsqft hhage athome temphome tempgone tempnite /*totrooms*/ yearmade aircond equipnoheat hdd65 cdd65 hdd30yr cdd30yr aircond*hdd30yr equipnoheat*cdd30yr
+hdd65*aircond equipnoheat*cdd65 tothsqft totcsqft aircond*totcsqft equipnoheat*tothsqft  / selection = forward( choose=cv stop = none);
+run;
+proc glmselect data = log_import plots(stepaxis = number) = (criterionpanel ASEPlot) seed = 1;
+class aircond equipnoheat athome;
+partition fraction(test = .5); 
+model log_dollar= totsqft hhage athome temphome tempgone tempnite /*totrooms*/ yearmade aircond equipnoheat hdd65 cdd65 hdd30yr cdd30yr aircond*hdd30yr equipnoheat*cdd30yr
+hdd65*aircond equipnoheat*cdd65 tothsqft totcsqft aircond*totcsqft equipnoheat*tothsqft  / selection = backward(choose=cv stop = none);
+run;
+proc glmselect data = log_import plots(stepaxis = number) = (criterionpanel ASEPlot) seed = 1;
+class aircond equipnoheat athome;
+partition fraction(test = .5); 
+model log_dollar= totsqft hhage athome temphome tempgone tempnite /*totrooms*/ yearmade aircond equipnoheat hdd65 cdd65 hdd30yr cdd30yr aircond*hdd30yr equipnoheat*cdd30yr
+hdd65*aircond equipnoheat*cdd65 tothsqft totcsqft aircond*totcsqft equipnoheat*tothsqft  / selection = lasso( choose=cv stop = none) cvdetails;
+run;
