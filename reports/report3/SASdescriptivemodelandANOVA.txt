@@ -1,0 +1,139 @@
+FILENAME REFFILE '/home/jglin0/sasuser.v94/Project/recs2009_public_vlad_clean.csv';
+
+PROC IMPORT DATAFILE=REFFILE
+	DBMS=CSV
+	OUT=WORK.IMPORT;
+	GETNAMES=YES;
+RUN;
+
+data log_import;
+set import;
+log_dollar = log(totaldol);
+dollar_sqft = totaldol/totsqft;
+log_dollar_sqft = log(dollar_sqft);
+log_sqft = log(totsqft);
+sqft_100 = totsqft/100;
+hdd30_aircond = hdd30yr * aircond;
+run;
+proc reg data=log_import;
+model log_dollar =  sqft_100 hhage athome tempgone totrooms yearmade aircond cdd30yr hdd30yr hdd30_aircond/vif;
+run;
+proc glmselect data = log_import plots(stepaxis = number) = (criterionpanel ASEPlot) seed = 1;
+class aircond equipnoheat athome;
+partition fraction(test = .5); 
+model log_dollar= totsqft hhage athome temphome tempgone tempnite /*totrooms*/ yearmade aircond equipnoheat hdd65 cdd65 hdd30yr cdd30yr aircond*hdd30yr equipnoheat*cdd30yr
+hdd65*aircond equipnoheat*cdd65 tothsqft totcsqft aircond*totcsqft equipnoheat*tothsqft  / selection = stepwise( choose=cv stop = none);
+run;
+proc glmselect data = log_import plots(stepaxis = number) = (criterionpanel ASEPlot) seed = 1;
+class aircond equipnoheat athome;
+partition fraction(test = .5); 
+model log_dollar= totsqft hhage athome temphome tempgone tempnite /*totrooms*/ yearmade aircond equipnoheat hdd65 cdd65 hdd30yr cdd30yr aircond*hdd30yr equipnoheat*cdd30yr
+hdd65*aircond equipnoheat*cdd65 tothsqft totcsqft aircond*totcsqft equipnoheat*tothsqft  / selection = forward( choose=cv stop = none);
+run;
+proc glmselect data = log_import plots(stepaxis = number) = (criterionpanel ASEPlot) seed = 1;
+class aircond equipnoheat athome;
+partition fraction(test = .5); 
+model log_dollar= totsqft hhage athome temphome tempgone tempnite /*totrooms*/ yearmade aircond equipnoheat hdd65 cdd65 hdd30yr cdd30yr aircond*hdd30yr equipnoheat*cdd30yr
+hdd65*aircond equipnoheat*cdd65 tothsqft totcsqft aircond*totcsqft equipnoheat*tothsqft  / selection = backward(choose=cv stop = none);
+run;
+proc glmselect data = log_import plots(stepaxis = number) = (criterionpanel ASEPlot) seed = 1;
+class aircond equipnoheat athome;
+partition fraction(test = .5); 
+model log_dollar= totsqft hhage athome temphome tempgone tempnite /*totrooms*/ yearmade aircond equipnoheat hdd65 cdd65 hdd30yr cdd30yr aircond*hdd30yr equipnoheat*cdd30yr
+hdd65*aircond equipnoheat*cdd65 tothsqft totcsqft aircond*totcsqft equipnoheat*tothsqft  / selection = lasso( choose=cv stop = none) cvdetails;
+run;
+
+/*****Two Way ANOVA**********/;
+FILENAME REFFILE '/home/jglin0/sasuser.v94/Project/recs2009_public_vlad_clean.csv';
+
+PROC IMPORT DATAFILE=REFFILE
+	DBMS=CSV
+	OUT=WORK.IMPORT;
+	GETNAMES=YES;
+RUN;
+
+data log_import;
+set import;
+log_dollar = log(totaldol);
+dollar_sqft = totaldol/totsqft;
+log_dollar_sqft = log(dollar_sqft);
+log_sqft = log(totsqft);
+sqft_100 = totsqft/100;
+hdd30_aircond = hdd30yr * aircond;
+run;
+proc contents data=log_import;
+run;
+
+
+proc means data=log_import n mean max min range std fw=8;
+class regionc  ur;
+var log_dollar;
+output out=meansout mean=mean std=std;
+title 'Summary of Energy';
+run;
+
+
+
+
+*The following chunk of code is some basic code to plot the summary statistics in a convenient profile type plot.;
+*This will probably take you some time to understand how sas works to finally get the plot but for those who put in the effort, your understanding of SAS
+will be better for it and you will soon figure out you can do a lot of differnt things. For those of you who do not have the time, the alternative is to take the summary statistics
+output and move them over to excel and create a plot over there.;
+
+data summarystats;
+set meansout;
+if _TYPE_=0 then delete;
+if _TYPE_=1 then delete;
+if _TYPE_=2 then delete;
+run;
+
+
+*This data step creates the necessary data set to plot the mean estimates along with the error bars;
+data plottingdata(keep=regionc ur mean std newvar);                                                                                                      
+   set summarystats;
+by regionc ur;
+ 
+   newvar=mean;  
+   output;                                                                                                                              
+                                                                                                                                        
+   newvar=mean - std;                                                                                                                  
+   output;                                                                                                                              
+                                                                                                                                        
+   newvar=mean + std;                                                                                                                  
+   output;                                                                                                                              
+run;  
+
+
+
+*Plotting options to make graph look somewhat decent;
+ title1 'Plot Means with Standard Error Bars from Calculated Data for Groups';  
+
+   symbol1 interpol=hiloctj color=vibg line=1;                                                                                          
+   symbol2 interpol=hiloctj color=depk line=1;                                                                                          
+                                                                                                                                        
+   symbol3 interpol=none color=vibg value=dot height=1.5;                                                                               
+   symbol4 interpol=none color=depk value=dot height=1.5;  
+
+   axis1 offset=(2,2) ;                                                                                                       
+   axis2 label=("Log_Dollar") order=(6 to 8.5 by 0.1) minor=(n=1); 
+
+   *data has to be sorted on the variable which you are going to put on the x axis;
+   proc sort data=plottingdata;
+   by regionc;
+   run;
+
+
+
+proc gplot data=plottingdata;
+plot NewVar*regionc=ur / vaxis=axis2 haxis=axis1;
+*Since the first plot is actually 2 (male female) the corresponding symbol1 and symbol2 options are used which is telling sas to make error bars.  The option is hiloctj;
+plot2 Mean*regionc=ur / vaxis=axis2 noaxis nolegend;
+*This plot uses the final 2 symbols options to plot the mean points;
+run;quit;
+*This is the end of the plotting code;
+
+
+proc glm data=log_import PLOTS=(DIAGNOSTICS RESIDUALS);
+class regionc ur;
+model log_dollar= regionc ur regionc*ur;
+run;
